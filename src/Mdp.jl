@@ -22,27 +22,18 @@ function bellman_backup(s, S, A, T, C, V_old)
 end
 
 function value_iteration(S,A,T,C; ϵ=0.001, V_old = zeros(length(S)))
-    # println("Start")
     V_new = copy(V_old)
     residuals = ones(length(S)).*typemax(Float64)
     n = 0
     while maximum(residuals)>ϵ
-        # println("Running, iteration $n ")
-        # println(residuals)
-        # println(V_old)
-
         n+=1
         for s in eachindex(S)
             V_new[s] = bellman_backup(s, S, A, T, C, V_old)
-            # println(V_new[s])
         end
         residuals = abs.(V_new.-V_old)
         V_old, V_new = V_new, V_old
     end
-    # println("Final: ")
-    # println(residuals)
-    # println(V_new)
-    println("Finished after $n iterartions")
+    println("Finished after %n iterations")
     return V_new
 end
 
