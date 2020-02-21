@@ -1,4 +1,4 @@
 module Mdp
 export value_iteration
-include("vi.jl")
+include("VI.jl")
 end
