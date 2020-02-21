@@ -1,3 +1,4 @@
+using Mdp.VI
 # Define simple domains (from Massau Kolobov 2016 book, p.41)
 S = 1:6 # States
 A = 1:2
