@@ -1,5 +1,6 @@
 module VI
 export value_iteration, bellman_backup
+
 function state_backup(sas, T, C, V_old)
     return get(T, sas, 0.)*(get(C, sas, 0.) + V_old[sas[end]])
 end
@@ -20,7 +21,9 @@ function bellman_backup(s, S, A, T, C, V_old)
     return minimum(Q)
 end
 
-function value_iteration(S,A,T,C; ϵ=0.001, V_old = zeros(length(S)))
+function value_iteration(S::AbstractArray{Int64,1},
+    A::AbstractArray{Int64,1},
+    T,C; ϵ::Float64=0.001, V_old = zeros(length(S)))
     V_new = copy(V_old)
     residuals = ones(length(S)).*typemax(Float64)
     n = 0
