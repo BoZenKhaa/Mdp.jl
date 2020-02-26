@@ -5,18 +5,18 @@ export Product, Problem, prob_user_accept, prob_prod_req, len_product_selling_pe
 Product = NTuple{N, Int64} where N
 
 struct Problem
-    capacity_ranges::NTuple{N, AbstractArray} where N # Capacity of problem capacity edges
+    C::NTuple{N, AbstractArray} where N # Capacity of problem capacity edges
     edge_selling_horizon_end::NTuple{N, Int64} where N # timestep after which the corresponding capacity edge can not be sold
     N::Int64  # Number of timesteps
     A::NTuple{N, Int64} where N # price range <-> actions
     products::NTuple{N, Product} where N
-    λ::Dict{Product, Int64}
+    λ::Dict{Product, Float64}
 
     S::Base.Iterators.ProductIterator # States defined by available capacity
 
-    Problem(capacity_ranges, edge_selling_horizon_end, N, A, products, λ)=
-        new(capacity_ranges, edge_selling_horizon_end, N, A, products, λ,
-            Base.product(capacity_ranges...)
+    Problem(C, edge_selling_horizon_end, N, A, products, λ)=
+        new(C, edge_selling_horizon_end, N, A, products, λ,
+            Base.product(C...)
             )
 end
 
@@ -27,7 +27,7 @@ end
 function prob_user_accept(
                         x::Number;
                         slope_start::Float64=5.,
-                        slope_end::Float64=10.)
+                        slope_end::Float64=30.)
     # "Step" function with slope in the middle, like so:
     #  1-|-----\
     #    |      \
@@ -43,7 +43,7 @@ function prob_user_accept(
     end
 end
 
-function prob_prod_req(product::Product, timestep::Int64, pr::Problem)
+function prob_prod_req(product::Product, pr::Problem)
     return pr.λ[product]/len_product_selling_period(product, pr)
 end
 
