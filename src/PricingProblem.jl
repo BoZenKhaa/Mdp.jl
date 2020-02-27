@@ -25,16 +25,21 @@ function len_product_selling_period(product::Product, pr::Problem)
     pr.edge_selling_horizon_end[product[1]]
 end
 
-function prob_user_accept(
-                        x::Number;
+"""
+    prob_user_accept(10, slope_start=5., slope_end=30.)
+
+"Step" function with slope in the middle, like so:
+  1-|-----\\
+    |      \\
+    |       \\
+  0-|-----|--\\------
+    0  start end
+
+TODO: Handle better configuration of user model in problem, now its hardcoded here.
+"""
+function prob_user_accept(x::Number;
                         slope_start::Float64=5.,
                         slope_end::Float64=30.)
-    # "Step" function with slope in the middle, like so:
-    #  1-|-----\
-    #    |      \
-    #    |       \
-    #  0-|-----|--\------
-    #    0  start end
     if x<slope_start
         return 1.
     elseif x>slope_end
@@ -82,7 +87,7 @@ correspond to next states.
 # Examples
 see tests.
 """
-function state_transitions(s::State, actions::Array{Int64}, products::Array{Product}, P::Problem)
+function state_transitions(s::State, actions::NTuple{N, Int64} where N, products::NTuple{N, Product} where N, P::Problem)
     available_prods, next_states = get_next_states(s, products)
 
     T_s = Matrix{Float64}(undef, length(actions)+1, length(next_states)) # +1 for action=Infinity
