@@ -35,58 +35,23 @@ P = Problem(
         (1, 2) => 0.5),
 )
 
-State  = Vector{Int64} # Consider https://github.com/JuliaArrays/StaticArrays.jl for speedup
 
-function add_next_state!(available_prods::Array{Product}, next_states::Array{State}, s::State, product::Product)
-    s_next = copy(s)
-    for c_i in product
-        new_c = s_next[c_i]-1
-        if new_c<0
-            return
-        else
-            s_next[c_i] = new_c
-        end
-    end
-    push!(next_states, s_next)
-    push!(available_prods, product)
+@testset "state_transitions" begin
+    @test state_transitions([0,0], P.A, P.products, P) == ([[0,0]],
+        reshape([1,1,1], 3,1))
+    @test state_transitions([0,1], P.A, P.products, P) == ([[0,1],[0,0]],
+        [0.9199999999999999 0.08000000000000002;
+        0.96 0.04000000000000001;
+        1.0 0.0])
+    @test state_transitions([1,0], P.A, P.products, P) == ([[1,0],[0,0]],
+        [0.8666666666666667 0.13333333333333333;
+        0.9333333333333333 0.06666666666666667;
+        1.0 0.0])
+    @test state_transitions([1,1], P.A, P.products, P) == ([[1,1],[0,1],[1,0],[0,0]],
+        [0.6533333333333333 0.13333333333333333 0.08000000000000002 0.13333333333333333;
+        0.8266666666666667 0.06666666666666667 0.04000000000000001 0.06666666666666667;
+        1.0 0.0 0.0 0.0])
 end
-
-function get_next_states(s::State, products)
-    next_states::Vector{State} = [s]
-    available_prods::Vector{Product} = [()] #Matrix{State}(undef, length(P.C), length(P.products))
-    for p in products
-        add_next_state!(available_prods, next_states, s, p)
-    end
-    return available_prods, next_states
-end
-
-println(get_next_states([0,1], P.products))
-
-function state_transitions(s, actions, products, P)
-    available_prods, next_states = get_next_states(s, products)
-
-    T_s = Matrix{Float64}(undef, length(actions)+1, length(next_states)) # +1 for action=Infinity
-    T_s[end, 2:end].=0.
-    T_s[:, 1].=1. # First column is the state transition for empty product ()
-
-    for (i_a, a) in enumerate(actions)
-        for (i_p, p) in enumerate(available_prods)
-            if p==()
-                continue
-            else
-                p_T = prob_prod_req(p, P)*prob_user_accept(a)
-                T_s[i_a, i_p] = p_T
-                T_s[i_a, 1] -= p_T
-            end
-        end
-    end
-
-    return next_states, T_s
-end
-
-next_states, T_s = state_transitions([0,1], P.A, P.products, P)
-
-
 
 @testset "get_next_states" begin
     @test get_next_states([0,0], P.products) == ([()], [[0,0]])
@@ -108,7 +73,7 @@ end
     @test len_product_selling_period((2,), P) == P.edge_selling_horizon_end[2]
     @test len_product_selling_period((1, 2), P) == P.edge_selling_horizon_end[1]
 
-    @test prob_prod_req((1,), 1, P) == P.λ[(1,)] / P.edge_selling_horizon_end[1]
-    @test prob_prod_req((1, 2), 1, P) == P.λ[(1, 2)] / P.edge_selling_horizon_end[1]
+    @test prob_prod_req((1,), P) == P.λ[(1,)] / P.edge_selling_horizon_end[1]
+    @test prob_prod_req((1, 2), P) == P.λ[(1, 2)] / P.edge_selling_horizon_end[1]
 end
 end

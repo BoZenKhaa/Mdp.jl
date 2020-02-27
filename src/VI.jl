@@ -35,7 +35,7 @@ function value_iteration(S::AbstractArray{Int64,1},
         residuals = abs.(V_new.-V_old)
         V_old, V_new = V_new, V_old
     end
-    println("Finished after $n iterations")
+    # println("Finished after $n iterations")
     return V_new
 end
 end
