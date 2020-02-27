@@ -32,7 +32,15 @@ P = Problem(
         (1, 2) => 0.5),
 )
 
+Q = zeros(Float64, length(P.A)+1, map(length, P.C)...)
+for it in P.S
+    s = [it...]
+    next_states, T_s = state_transitions(s, P.A, P.products, P)
+end
 
+next_states, T_s = state_transitions([0,1], P.A, P.products, P)
+s_next = next_states[1]
+Q[:, s_next.+1...].=T_s
 
 
 @testset "state_transitions" begin
