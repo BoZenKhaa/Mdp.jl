@@ -49,8 +49,12 @@ function prob_user_accept(x::Number;
     end
 end
 
-function prob_prod_req(product::Product, pr::Problem)
-    return pr.λ[product]/len_product_selling_period(product, pr)
+function prob_prod_req(product::Product, timestep::Int64, pr::Problem)
+    if timestep <= pr.edge_selling_horizon_end[product[1]]
+        return pr.λ[product]/len_product_selling_period(product, pr)
+    else
+        return 0.
+    end
 end
 
 function add_next_state!(available_prods::Array{Product}, next_states::Array{State}, s::State, product::Product)
@@ -77,17 +81,17 @@ function get_next_states(s::State, products)
 end
 
 """
-    state_transitions(s, P.actions, P.products, P)
+    state_transitions(s, k, P.actions, P.products, P)
 
 Compute transition probability matrix for transitions from state `s`. Return
-array with next states and the transition table. Rows of the table are indexed by
-actions from the problem description, plus the "reject" action. Columns
+array with next states and the transition table. Rows of the table are indexed
+by actions from the problem description, plus the "reject" action. Columns
 correspond to next states.
 
 # Examples
 see tests.
 """
-function state_transitions(s::State, actions::NTuple{N, Int64} where N, products::NTuple{N, Product} where N, P::Problem)
+function state_transitions(s::State, k::Int64, actions::NTuple{N, Int64} where N, products::NTuple{N, Product} where N, P::Problem)
     available_prods, next_states = get_next_states(s, products)
 
     T_s = Matrix{Float64}(undef, length(actions)+1, length(next_states)) # +1 for action=Infinity
@@ -99,7 +103,7 @@ function state_transitions(s::State, actions::NTuple{N, Int64} where N, products
             if p==()
                 continue
             else
-                p_T = prob_prod_req(p, P)*prob_user_accept(a)
+                p_T = prob_prod_req(p, k, P)*prob_user_accept(a)
                 T_s[i_a, i_p] = p_T
                 T_s[i_a, 1] -= p_T
             end
@@ -108,5 +112,6 @@ function state_transitions(s::State, actions::NTuple{N, Int64} where N, products
 
     return next_states, T_s
 end
+
 
 end
