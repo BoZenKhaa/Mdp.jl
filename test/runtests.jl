@@ -73,10 +73,13 @@ for it in P.S
         Q[:, state2id(s_next)...].+= p.*(r.+v_k)
     end
 end
+V = maximum(Q, dims=1)
 
-Q[1, :, :]
-Q[2, :, :]
-Q[3, :, :]
+println(Q)
+println(V)
+# Q[1, :, :]
+# Q[2, :, :]
+# Q[3, :, :]
 
 
 @testset "get_R" begin
