@@ -119,6 +119,7 @@ display(Q[2,2,2])
 
 @testset "get_V" begin
     @testset "Test Problem 1" begin
+        # See docs/FH_mdp_testcase.jpg
         @testset "V_next=0" begin
             V_next = zeros(Float64, map(length, P.C)...)
             k = 3#P.N
