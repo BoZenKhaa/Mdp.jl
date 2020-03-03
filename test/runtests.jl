@@ -10,9 +10,12 @@ end
 end
 
 @testset "PricingProblem.jl" begin
-    # include("test_pricing_problem.jl")
+    include("test_pricing_problem.jl")
+end
 
-using Mdp.PricingProblem
+@testset "PricingAlgorithmFH.jl" begin
+
+using Mdp.PricingAlgorithmFH
 
 """
 Model of test problem:
@@ -126,17 +129,6 @@ function pricing_FH(P::Problem)
 end
 
 
-P_3 = Problem(
-    (0:3, 0:3),                 # Capacity of edges
-    (50,50),                   # Selling period end of edges
-    50,                      # Number of timesteps (Start at 1)
-    (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32),               # Actions (prices)
-    ((1,),(2,),(1,2)),                # Products (seqeuences of edge indeces)
-    Dict((1,) => 10,
-    (2,)=> 0.5, (1,2)=> 0.5)       # λ: Dictionary of demand intensities for products
-)
-π_star = pricing_FH(P_3)
-println(π_star)
 
 @testset "Q, π, V" begin
     @testset "Test Problem 1" begin
@@ -262,28 +254,5 @@ end
         [[1,0],[0,0]])
     @test get_next_states([1,1], P.products) == ([(), (1,), (2,), (1,2)],
         [[1,1],[0,1],[1,0],[0,0]])
-end
-
-@testset "prob_user_accept" begin
-    @test prob_user_accept(5.0; slope_start = 5.0, slope_end = 10.0) == 1.0
-    @test prob_user_accept(10.0; slope_start = 5.0, slope_end = 10.0) == 0.0
-    @test prob_user_accept(7.5; slope_start = 5.0, slope_end = 10.0) == 0.5
-    @test prob_user_accept(3.0; slope_start = 5.0, slope_end = 10.0) == 1.0
-    @test prob_user_accept(15.0; slope_start = 5.0, slope_end = 10.0) == 0.0
-end
-
-@testset "prob_prod_req" begin
-    @test len_product_selling_period((1,),  P) == P.edge_selling_horizon_end[1]
-    @test len_product_selling_period((2,), P) == P.edge_selling_horizon_end[2]
-    @test len_product_selling_period((1, 2), P) == P.edge_selling_horizon_end[1]
-
-    k = 3
-    @test prob_prod_req((1,),k, P) == P.λ[(1,)] / P.edge_selling_horizon_end[1]
-    @test prob_prod_req((2,),k, P) == P.λ[(2,)] / P.edge_selling_horizon_end[2]
-    @test prob_prod_req((1, 2),k, P) == P.λ[(1, 2)] / P.edge_selling_horizon_end[1]
-    k = 4
-    @test prob_prod_req((1,),k, P) == 0.
-    @test prob_prod_req((2,),k, P) == P.λ[(2,)] / P.edge_selling_horizon_end[2]
-    @test prob_prod_req((1,2),k, P) == 0.
 end
 end
