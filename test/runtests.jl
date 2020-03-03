@@ -33,6 +33,23 @@ P = Problem(
 )
 
 """
+Model of test problem 2:
+
+2 nodes, 1 edge: graph:      A---B
+capacity:     1
+sell end:     5
+"""
+# P_2 = Problem(
+#     (0:1,),                  # Capacity of edges
+#     (5,),                    # Selling period end of edges
+#     5,                      # Number of timesteps (Start at 1)
+#     (10, 20),               # Actions (prices)
+#     ((1,),),                # Products (seqeuences of edge indeces)
+#     Dict((1,) => 0.5)       # λ: Dictionary of demand intensities for products
+# )
+
+
+"""
     state2id(s)
 
 Convert state to matrix index.
@@ -58,29 +75,88 @@ function get_R(s::State, s_next::State, R_s::Matrix{Float64})
     end
 end
 
-k = P.N
-V_k = zeros(Float64, map(length, P.C)...)
-Q = zeros(Float64, length(P.A)+1, map(length, P.C)...)
-R_s = state_rewards(P.A)
+function get_Q(k::Int64, V_next::Matrix{Float64}, P::Problem)
+    Q = zeros(Float64, length(P.A)+1, map(length, P.C)...)
+    R_s = state_rewards(P.A)
 
-for it in P.S
-    s = [it...]
-    next_states, T_s = state_transitions(s,k, P.A, P.products, P)
-    for (i_s, s_next) in enumerate(next_states)
-        p = T_s[:,i_s]
-        r = get_R(s, s_next, R_s)
-        v_k = V_k[state2id(s_next)...]
-        Q[:, state2id(s_next)...].+= p.*(r.+v_k)
+    for s_tuple in P.S
+        s = [s_tuple...]
+        next_states, T_s = state_transitions(s, k, P.A, P.products, P)
+        for (i_s, s_next) in enumerate(next_states)
+            p = T_s[:,i_s]
+            r = get_R(s, s_next, R_s)
+            v = V_next[state2id(s_next)...]
+            # tmp = p.*(r.+v)
+            # display("$s - $i_s - $s_next p: $tmp")
+            Q[:, state2id(s)...].+= p.*(r.+v)
+        end
+    end
+    return Q
+end
+
+function get_V(k::Int64, V_next::Matrix{Float64}, P::Problem)
+    Q = get_Q(k, V_next, P)
+
+    V_k = maximum(Q, dims=1)
+    # display(V)
+    V_k = dropdims(V_k, dims=1)
+    # display(V)
+
+    # TODO: Argmax here returns the lowest index for multiple equal values.
+    # In deployment, randomizing over the actions could be better.
+    # π_k = argmax(Q, dims=1) # returns Cartesian index
+    π_k = mapslices(argmax,Q, dims=1) # Returns array
+    π_k = dropdims(π_k, dims=1)
+    return V_k, π_k
+end
+
+V_next = ones(Float64, map(length, P.C)...).*10
+k = 5
+Q = get_Q(k, V_next, P)
+display(Q[1,2,2])
+display(Q[2,2,2])
+
+
+@testset "get_V" begin
+    @testset "Test Problem 1" begin
+        @testset "V_next=0" begin
+            V_next = zeros(Float64, map(length, P.C)...)
+            k = 3#P.N
+            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
+                                          1.3333333333333333 3.2],
+                                          [1 1;
+                                           1 1])
+            k=5 # difference from selling period end for products (1,) and (1,2)
+            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
+                                          0.0 0.8000000000000002],
+                                          [1 1;
+                                           1 1])
+        end
+
+        @testset "V_next=10" begin
+            V_next = ones(Float64, map(length, P.C)...).*10
+            k = 3
+            #TODO: The action 2 is caused by numerical instability!
+            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
+                                          1.3333333333333333 3.200000000000001].+10.,
+                                          [1 2;
+                                           1 2])
+            k = 5
+            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
+                                          0.0 0.8000000000000002].+10.,
+                                          [1 2;
+                                           1 2])
+        end
+    end
+    @testset "Test Problem 2" begin
     end
 end
-V = maximum(Q, dims=1)
 
-println(Q)
-println(V)
-# Q[1, :, :]
-# Q[2, :, :]
-# Q[3, :, :]
 
+@testset "state2id" begin
+    @test state2id([0,1])==[1,2]
+    @test state2id([0,0])==[1,1]
+end
 
 @testset "get_R" begin
     R_s = state_rewards(P.A)
@@ -92,6 +168,9 @@ println(V)
 end
 
 @testset "state_transitions" begin
+    """
+    These probabilities are used to set up the following testcases.
+    """
     k = 3
     @test state_transitions([0,0],k, P.A, P.products, P) == ([[0,0]],
         reshape([1,1,1], 3,1))
