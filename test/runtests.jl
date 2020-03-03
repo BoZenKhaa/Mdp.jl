@@ -94,59 +94,70 @@ function get_Q(k::Int64, V_next::Matrix{Float64}, P::Problem)
     return Q
 end
 
-function get_V(k::Int64, V_next::Matrix{Float64}, P::Problem)
-    Q = get_Q(k, V_next, P)
-
-    V_k = maximum(Q, dims=1)
-    # display(V)
+# TODO: Merge V and π usinf `findmax` function
+function V(Q_k::Array{Float64, 3})
+    V_k = maximum(Q_k, dims=1)
     V_k = dropdims(V_k, dims=1)
-    # display(V)
+    return V_k
+end
 
+function π(Q_k::Array{Float64, 3})
     # TODO: Argmax here returns the lowest index for multiple equal values.
     # In deployment, randomizing over the actions could be better.
     # π_k = argmax(Q, dims=1) # returns Cartesian index
-    π_k = mapslices(argmax,Q, dims=1) # Returns array
+    π_k = mapslices(argmax,Q_k, dims=1) # Returns array
     π_k = dropdims(π_k, dims=1)
-    return V_k, π_k
+    return π_k
 end
 
 V_next = ones(Float64, map(length, P.C)...).*10
 k = 5
 Q = get_Q(k, V_next, P)
+π_k = π(Q)
+V_k = V(Q)
+display(Q)
 display(Q[1,2,2])
 display(Q[2,2,2])
 
 
-@testset "get_V" begin
+@testset "Q, π, V" begin
     @testset "Test Problem 1" begin
         # See docs/FH_mdp_testcase.jpg
         @testset "V_next=0" begin
             V_next = zeros(Float64, map(length, P.C)...)
             k = 3#P.N
-            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
-                                          1.3333333333333333 3.2],
-                                          [1 1;
-                                           1 1])
+            Q = get_Q(k, V_next, P)
+            @test Q == cat([0.0 1.3333333333333333;
+                            0.0 1.3333333333333333;
+                            0.0 0.0],
+                            [0.8000000000000002 3.2;
+                            0.8000000000000002 3.2;
+                            0.0 0.0], dims=3)
+            @test V(Q) == [0.0 0.8000000000000002;
+                           1.3333333333333333 3.2]
+            @test π(Q) == [1 1; 1 1]
+
             k=5 # difference from selling period end for products (1,) and (1,2)
-            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
-                                          0.0 0.8000000000000002],
-                                          [1 1;
-                                           1 1])
+            Q = get_Q(k, V_next, P)
+            @test V(Q) == [0.0 0.8000000000000002;
+                          0.0 0.8000000000000002]
+            @test π(Q) == [1 1; 1 1]
         end
 
         @testset "V_next=10" begin
             V_next = ones(Float64, map(length, P.C)...).*10
             k = 3
             #TODO: The action 2 is caused by numerical instability!
-            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
-                                          1.3333333333333333 3.200000000000001].+10.,
-                                          [1 2;
-                                           1 2])
+            Q = get_Q(k, V_next, P)
+            @test V(Q) == [0.0 0.8000000000000002;
+                          1.3333333333333333 3.200000000000001].+10.
+            @test π(Q) == [1 2; 1 2]
+
             k = 5
-            @test get_V(k, V_next, P) == ([0.0 0.8000000000000002;
-                                          0.0 0.8000000000000002].+10.,
-                                          [1 2;
-                                           1 2])
+            Q = get_Q(k, V_next, P)
+            @test V(Q) == [0.0 0.8000000000000002;
+                          0.0 0.8000000000000002].+10.
+            @test π(Q) == [1 2; 1 2]
         end
     end
     @testset "Test Problem 2" begin
