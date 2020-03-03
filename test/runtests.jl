@@ -110,18 +110,32 @@ function π(Q_k::Array{Float64, 3})
     return π_k
 end
 
-V_old = zeros(Float64, map(length, P.C)...)
-V_new = similar(V_old)
-# π_star = Array{Float64, 3}(undef,P.N,map(length, P.C)...)
-π_star = Array{Float64, 3}(undef, map(length, P.C)..., P.N)
-for k in P.N:-1:1
-    Q_k = get_Q(k, V_old, P)
-    V_new = V(Q_k)
-    # π_star[k, :, :]=π(Q_k)
-    π_star[:, :, k]=π(Q_k)
-    V_old = V_new    # V_new, V_old = V_old, V_new
+function pricing_FH(P::Problem)
+    V_old = zeros(Float64, map(length, P.C)...)
+    V_new = similar(V_old)
+    # π_star = Array{Float64, 3}(undef,P.N,map(length, P.C)...)
+    π_star = Array{Int64, 3}(undef, map(length, P.C)..., P.N)
+    for k in P.N:-1:1
+        Q_k = get_Q(k, V_old, P)
+        V_new = V(Q_k)
+        # π_star[k, :, :]=π(Q_k)
+        π_star[:, :, k]=π(Q_k)
+        V_old = V_new    # V_new, V_old = V_old, V_new
+    end
+    return π_star
 end
 
+
+P_3 = Problem(
+    (0:3, 0:3),                 # Capacity of edges
+    (50,50),                   # Selling period end of edges
+    50,                      # Number of timesteps (Start at 1)
+    (1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32),               # Actions (prices)
+    ((1,),(2,),(1,2)),                # Products (seqeuences of edge indeces)
+    Dict((1,) => 10,
+    (2,)=> 0.5, (1,2)=> 0.5)       # λ: Dictionary of demand intensities for products
+)
+π_star = pricing_FH(P_3)
 println(π_star)
 
 @testset "Q, π, V" begin
