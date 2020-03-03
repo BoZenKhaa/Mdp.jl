@@ -39,14 +39,14 @@ Model of test problem 2:
 capacity:     1
 sell end:     5
 """
-# P_2 = Problem(
-#     (0:1,),                  # Capacity of edges
-#     (5,),                    # Selling period end of edges
-#     5,                      # Number of timesteps (Start at 1)
-#     (10, 20),               # Actions (prices)
-#     ((1,),),                # Products (seqeuences of edge indeces)
-#     Dict((1,) => 0.5)       # λ: Dictionary of demand intensities for products
-# )
+P_2 = Problem(
+    (0:1,),                 # Capacity of edges
+    (5,),                   # Selling period end of edges
+    5,                      # Number of timesteps (Start at 1)
+    (10, 20),               # Actions (prices)
+    ((1,),),                # Products (seqeuences of edge indeces)
+    Dict((1,) => 0.5)       # λ: Dictionary of demand intensities for products
+)
 
 
 """
@@ -94,8 +94,8 @@ function get_Q(k::Int64, V_next::Matrix{Float64}, P::Problem)
     return Q
 end
 
-# TODO: Merge V and π usinf `findmax` function
 function V(Q_k::Array{Float64, 3})
+    # TODO: Merge V and π usinf `findmax` function
     V_k = maximum(Q_k, dims=1)
     V_k = dropdims(V_k, dims=1)
     return V_k
@@ -110,15 +110,19 @@ function π(Q_k::Array{Float64, 3})
     return π_k
 end
 
-V_next = ones(Float64, map(length, P.C)...).*10
-k = 5
-Q = get_Q(k, V_next, P)
-π_k = π(Q)
-V_k = V(Q)
-display(Q)
-display(Q[1,2,2])
-display(Q[2,2,2])
+V_old = zeros(Float64, map(length, P.C)...)
+V_new = similar(V_old)
+# π_star = Array{Float64, 3}(undef,P.N,map(length, P.C)...)
+π_star = Array{Float64, 3}(undef, map(length, P.C)..., P.N)
+for k in P.N:-1:1
+    Q_k = get_Q(k, V_old, P)
+    V_new = V(Q_k)
+    # π_star[k, :, :]=π(Q_k)
+    π_star[:, :, k]=π(Q_k)
+    V_old = V_new    # V_new, V_old = V_old, V_new
+end
 
+println(π_star)
 
 @testset "Q, π, V" begin
     @testset "Test Problem 1" begin
@@ -172,7 +176,7 @@ display(Q[2,2,2])
                             10.0 10.0;
                             10.0 10.0],
                             [10.799999999999999 10.799999999999999;
-                            10.8 10.8; 
+                            10.8 10.8;
                             10.0 10.0], dims=3)
             @test V(Q) == [0.0 0.8000000000000002;
                           0.0 0.8000000000000002].+10.
