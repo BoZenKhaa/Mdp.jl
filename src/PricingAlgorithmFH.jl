@@ -40,7 +40,7 @@ correspond to next states.
 # Examples
 see tests.
 """
-function state_transitions(s::State, k::Int64, actions::NTuple{N, Int64} where N, products::NTuple{N, Product} where N, P::Problem)
+function state_transitions(s::State, k::Int64, actions::Array{Int64}, products::Array{Product}, P::Problem)
     available_prods, next_states = get_next_states(s, products)
 
     T_s = Matrix{Float64}(undef, length(actions)+1, length(next_states)) # +1 for action=Infinity
@@ -71,7 +71,7 @@ function state2id(s::State)
     return s.+1
 end
 
-function state_rewards(actions::NTuple{N, Int64} where N)
+function state_rewards(actions::Array{Int64})
     R_s = zeros(Float64, length(actions)+1, 2) # 2 columns, one for empty product, one for all others
     # Last row is the "reject" action
     # First column is the state transition for empty product "()"

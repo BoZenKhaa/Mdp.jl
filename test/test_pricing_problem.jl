@@ -2,11 +2,11 @@
 using Mdp.PricingProblem
 
 P = Problem(
-    (0:1, 0:1),             # Capacity of edges
-    (3, 5),                 # Selling period end of edges
+    [0:1, 0:1],             # Capacity of edges
+    [3, 5],                 # Selling period end of edges
     5,                      # Number of timesteps (Start at 1)
-    (10, 20),               # Actions (prices)
-    ((1,), (2,), (1, 2)),   # Products (seqeuences of edge indeces)
+    [10, 20],               # Actions (prices)
+    [(1,), (2,), (1, 2)],   # Products (seqeuences of edge indeces)
     Dict((1,) => 0.5,       # λ: Dictionary of demand intensities for products
         (2,) => 0.5,
         (1, 2) => 0.4),

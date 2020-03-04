@@ -5,18 +5,18 @@ export Product, Problem, prob_user_accept, prob_prod_req, len_product_selling_pe
 Product = NTuple{N, Int64} where N
 
 struct Problem
-    C::NTuple{N, AbstractArray} where N # Capacity of problem capacity edges
-    edge_selling_horizon_end::NTuple{N, Int64} where N # timestep after which the corresponding capacity edge can not be sold
+    C::Array{AbstractArray} # Capacity of problem capacity edges
+    edge_selling_horizon_end::Array{Int64} # timestep after which the corresponding capacity edge can not be sold
     N::Int64  # Number of timesteps
-    A::NTuple{N, Int64} where N # price range <-> actions
-    products::NTuple{N, Product} where N
+    A::Array{Int64} # price range <-> actions
+    products::Array{Product}
     λ::Dict{Product, Float64}
 
     S::Base.Iterators.ProductIterator # States defined by available capacity
 
     Problem(C, edge_selling_horizon_end, N, A, products, λ)=
         new(C, edge_selling_horizon_end, N, A, products, λ,
-            Base.product(C...)
+            Base.product(Tuple(C)...)
             )
 end
 
