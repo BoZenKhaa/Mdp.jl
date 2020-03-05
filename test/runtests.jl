@@ -10,9 +10,8 @@ end
     include("test_fh.jl")
 end
 
-@testset "PricingProblem.jl" begin
-    include("test_pricing_problem.jl")
-end
+include("test_pricing_problem.jl")
+
 
 @testset "PricingAlgorithmFH.jl" begin
     include("test_pricing_algorithm_fh.jl")
