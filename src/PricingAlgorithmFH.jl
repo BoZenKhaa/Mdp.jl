@@ -4,7 +4,7 @@ using Mdp.PricingProblem
 
 export State, add_next_state!, get_next_states, state_transitions, state2id, state_rewards, get_R, get_Q, get_V, get_π, pricing_FH
 
-State  = Vector{Int64} # Consider https://github.com/JuliaArrays/StaticArrays.jl for speedup
+State = Vector{Int64} # Consider https://github.com/JuliaArrays/StaticArrays.jl for speedup
 
 function add_next_state!(available_prods::Array{Product}, next_states::Array{State}, s::State, product::Product)
     s_next = copy(s)
@@ -28,6 +28,10 @@ function get_next_states(s::State, products)
     end
     return available_prods, next_states
 end
+
+b = [1,2]
+a = Matrix{Float64}(undef,5,5)
+a[b...]
 
 """
     state_transitions(s, k, P.actions, P.products, P)

@@ -14,7 +14,7 @@ end
 
 struct Product
     edges::Array{Edge}#NTuple{N,Edge} where N # indexes into the edges array of the problem
-    λ::Float64      # user demand intensity for product
+    λ::Float64     # user demand intensity for product
     um::Function    # user model of product buyers
 end
 
@@ -78,12 +78,9 @@ end
 
 function all_possible_products(edges::Array{Edge}, λ::Float64, um::Function)
     edge_combos = collect(combinations(edges))
-    # return length(edge_combos)
     products = Array{Product}(undef, length(edge_combos))
     for (i, product_edges) in enumerate(edge_combos)
-        println(typeof(product_edges))
-        println(product_edges)
-        products[i]=Product(product_edges, 1, price-> price)
+        products[i]=Product(product_edges, 1, price->price)
     end
     return products
 end

@@ -12,7 +12,6 @@ end
 
 include("test_pricing_problem.jl")
 
-
 @testset "PricingAlgorithmFH.jl" begin
     include("test_pricing_algorithm_fh.jl")
 end
