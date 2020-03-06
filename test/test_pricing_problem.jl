@@ -51,7 +51,9 @@ end
 end
 
 @testset "product_generator" begin
-    println(all_possible_products([e1, e2], 0.5, um))
+    all_possible_products([e1, e2], 0.5, um)==[Product([e1], 0.5,um),
+                                                Product([e2], 0.5,um),
+                                                Product([e1,e2], 0.5,um)]
 end
 
 end
